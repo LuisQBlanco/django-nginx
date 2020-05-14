@@ -17,23 +17,34 @@ ENV PYTHONUNBUFFERED 1
 
 COPY requirements.txt /djangonginx/
 
-RUN apk update --no-cache
+# Install psycopg2 dependencies
+RUN apk add --update --no-cache postgresql-client
+
+RUN apk add --update --no-cache --virtual .tmp-build-deps \
+      gcc libc-dev linux-headers postgresql-dev \
+      musl-dev
+
 RUN pip install --upgrade pip
 RUN pip install -r /djangonginx/requirements.txt
+
+
+RUN apk update --no-cache
+RUN apk del .tmp-build-deps
+
 
 # Copy project
 COPY ./app /djangonginx/
 
 # RUN apk add --update --no-cache postgresql-client 
-      # This is necessary to install Pillow
-      # \
-      # jpeg-dev
+#       This is necessary to install Pillow
+#       \
+#       jpeg-dev
 # RUN apk add --update --no-cache --virtual .tmp-build-deps \
-      # gcc libc-dev linux-headers postgresql-dev 
-      # This is necessary to install Pillow
-      # \
-      # musl-dev zlib \
-      # zlib-dev libjpeg
+#       gcc libc-dev linux-headers postgresql-dev 
+#       This is necessary to install Pillow
+#       \
+#       musl-dev zlib \
+#       zlib-dev libjpeg
       
 # RUN pip install -r /billdjpostg/requirements.txt
 

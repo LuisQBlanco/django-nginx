@@ -6,26 +6,30 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
+
+    networks: 
+      test_net:
+        ipv4_address: 172.29.1.1
   
     command:
-      # sleep infinity
-      python manage.py runserver
+      sleep infinity
+      # python manage.py runserver
       #  0.0.0.0:8000
 
     # networks: 
-    #   testing_net:
-    #     ipv4_address: 172.27.1.2
+    #   testing_net:  
+    #     ipv4_address: 172.27.1.1
       # ports:
       #   - 8100:8100
     volumes:
       - ./app:/djangonginx
 
-    ports:
-      - 8000:8000
+    # ports:
+    #   - 8000:8000
 
     env_file: 
       - ./.env.dev
-      
+
       # python manage.py migrate 
       # sh -c "python manage.py wait_for_db &&
       #       python manage.py migrate &&
@@ -42,37 +46,37 @@ services:
     #   - DB_NAME=app
     #   - DB_USER=postgres1
     #   - DB_PASS=supersecretpassword
-    # depends_on:
-    #   - db
+    depends_on:
+      - db
 
-#   db:
-#     container_name: postgres_db_bill
-#     image: postgres:12-alpine
+  db:
+    container_name: postgres_db
+    image: postgres:12-alpine
     
-#     restart: unless-stopped
+    restart: unless-stopped
     
 #     # ports:
 #     #   - 5432:5432
 
-#     networks: 
-#       testing_net:
-#         ipv4_address: 172.28.1.2
-#       # ports:
-#       #   - 5432:5432
-    
-      
-#     volumes:
-#       - postgres-data:/var/lib/postgresql/data
-#     environment: 
-#       - POSTGRES_DB=app
-#       - POSTGRES_USER=postgres1
-#       - POSTGRES_PASSWORD=supersecretpassword
-# volumes:
-#   postgres-data:
+    networks: 
+      test_net:
+        ipv4_address: 172.29.1.2
 
-# networks: 
-#   testing_net:
-#     ipam: 
-#       driver: default
-#       config: 
-#         - subnet: 172.27.1.0/16
+    
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    environment: 
+      - POSTGRES_DB=hello_django_dev
+      - POSTGRES_USER=hello_django
+      - POSTGRES_PASSWORD=supersecretpassword
+
+volumes:
+  postgres-data:
+
+networks: 
+  test_net:
+    ipam: 
+      driver: default
+      config: 
+        - subnet: 172.29.1.0/16
