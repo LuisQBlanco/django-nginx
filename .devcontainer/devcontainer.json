@@ -4,7 +4,7 @@
 	//"dockerFile": "Dockerfile",
 	"dockerComposeFile": "../docker-compose.yml",
 	"service": "web",
-	"workspaceFolder": "/djangonginx",
+	"workspaceFolder": "/djangonginx/",
 	"appPort": ["0.0.0.0"],
 
 	// Use 'settings' to set *default* container specific settings.json values on container create. 

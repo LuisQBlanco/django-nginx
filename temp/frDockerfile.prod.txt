@@ -1,14 +1,11 @@
-# Pull official base image
-FROM python:3.8-alpine
+# Builder #
 
+# Pull official base image
+FROM python:3.8-alpine as builder
 # MAINTAINER LuisQuinones
 
-# Create the appropiate directories
-ENV APP_HOME=/djangonginx
-
 # Set work directory
-# WORKDIR /djangonginx
-WORKDIR ${APP_HOME}
+WORKDIR /djangonginx
 
 # set environment variables
 # '''   PYTHONDONTWRITEBYTECODE: Prevents Python from writing pyc files to disc (equivalent to python -B option)
@@ -18,10 +15,7 @@ WORKDIR ${APP_HOME}
 ENV PYTHONDONTWRITEBYCOSE 1
 ENV PYTHONUNBUFFERED 1
 
-# Install dependencies
 
-# COPY requirements.txt /djangonginx/
-COPY requirements.txt ${APP_HOME}/
 
 # Install psycopg2 dependencies
 RUN apk add --update --no-cache postgresql-client
@@ -31,32 +25,66 @@ RUN apk add --update --no-cache --virtual .tmp-build-deps \
       musl-dev
 
 RUN pip install --upgrade pip
-# RUN pip install -r /djangonginx/requirements.txt
-RUN pip install -r ${APP_HOME}/requirements.txt
-
-
-RUN apk update --no-cache
-RUN apk del .tmp-build-deps
-
-# Copy entrypoint.sh
-# COPY ./app/entrypoint.sh /djangonginx/entrypoint.sh
-# COPY ./app/entrypoint.sh ${APP_HOME}/entrypoint.sh
-
+RUN pip install flake8
 
 # Copy project
-COPY ./app ${APP_HOME}/
+COPY ./app /djangonginx/
 
-# Create the app (userlq) user
-RUN adduser -D userlq
+RUN flake8 --ignore=E501,F401 .
 
-# Chown all the files to the app user
-RUN chown -R userlq:userlq $APP_HOME/
+# Install dependencies
+COPY requirements.txt /djangonginx/
 
-# Change to the app user
-USER userlq
+# RUN pip install -r /djangonginx/requirements.txt
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /djangonginx/wheels -r /djangonginx/requirements.txt
+
+
+
+# RUN apk update --no-cache
+RUN apk del .tmp-build-deps
+
+#########
+# FINAL #
+#########
+
+# Pull official base image
+FROM python:3.8-alpine
+
+# create directory for the app user
+RUN mkdir -p /home/djangonginx
+
+# Create the app user
+RUN addgroup -S app && adduser -S app -G app
+
+# Create the appropiate directories
+ENV HOME=/home/djangonginx
+ENV APP_HOME=/home/djangonginx/web
+RUN mkdir $APP_HOME
+
+WORKDIR $APP_HOME 
+
+# Install dependencies
+RUN apk update && apk add libpq
+COPY --from=builder /djangonginx/wheels /wheels
+COPY --from=builder /djangonginx/requirements.txt .
+RUN pip install --upgrade pip
+RUN pip install --no-cache /wheels/*
+
+# Copy project
+COPY ./app $APP_HOME
+
+# # Copy entrypoint.sh
+# COPY ./app/entrypoint.prod.sh $APP_HOME
+
+# chown all the file to the app user
+RUN chown -R app:app $APP_HOME
+
+# Change to app user
+USER app
 
 # Run entrypoint.sh
-# ENTRYPOINT [ ${APP_HOME} + "/entrypoint.sh" ]
+
+ENTRYPOINT [ "/home/djangonginx/entrypoint.prod.sh" ]
 
 # RUN apk add --update --no-cache postgresql-client 
 #       This is necessary to install Pillow
@@ -77,7 +105,7 @@ USER userlq
 # RUN pip3 install -U pylint
 
 
-# RUN mkdir /billdjpostg
+# RUN fmkdir /billdjpostg
 
 # COPY ./app /billdjpostg/
 

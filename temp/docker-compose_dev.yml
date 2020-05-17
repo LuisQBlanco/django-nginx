@@ -1,0 +1,87 @@
+#  Docker-compose_dev  
+#  This is the Docker-compose_dev use for develop the project in python 3.8 and django 3
+version: "3.7"
+
+services:
+  web:
+    container_name: django_nginx
+    build: 
+      context: .
+      dockerfile: Dockerfile
+
+    networks: 
+      test_net:
+        ipv4_address: 172.29.1.1
+  
+    command:
+      # sleep infinity
+      python manage.py runserver
+      #  0.0.0.0:8000
+
+    # networks: 
+    #   testing_net:  
+    #     ipv4_address: 172.27.1.1
+      # ports:
+      #   - 8100:8100
+    volumes:
+      - ./app:/djangonginx
+
+    # ports:
+    #   - 8000:8000
+
+    env_file: 
+      - ./.env.dev
+
+      # python manage.py migrate 
+      # sh -c "python manage.py wait_for_db &&
+      #       python manage.py migrate &&
+      #       python manage.py runserver 0.0.0.0:8000"
+    # command: 
+ 
+    # entrypoint: ["sh", "-c", "sleep 2073600"]
+      # python manage.py wait_for_db &&
+      # python manage.py migrate &&
+      # python manage.py runserver 0.0.0.0:8000
+
+    # environment:
+    #   - DB_HOST=db
+    #   - DB_NAME=app
+    #   - DB_USER=postgres1
+    #   - DB_PASS=supersecretpassword
+    depends_on:
+      - db
+
+  db:
+    container_name: postgres_db
+    image: postgres:12-alpine
+    
+    restart: unless-stopped
+    
+#     # ports:
+#     #   - 5432:5432
+
+    networks: 
+      test_net:
+        ipv4_address: 172.29.1.2
+
+    
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    environment: 
+      - POSTGRES_DB=hello_django_dev
+      - POSTGRES_USER=hello_django
+      - POSTGRES_PASSWORD=supersecretpassword
+
+volumes:
+  postgres-data:
+
+networks: 
+  test_net:
+    ipam: 
+      driver: default
+      config: 
+        - subnet: 172.29.1.0/16
+
+# Docker-compose_prod.yml
+# This is the Docker-compose_prod use for develop the project in python 3.8, django 3, Gunicorn
