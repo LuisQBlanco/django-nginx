@@ -2,7 +2,7 @@
 	"name": "django_nginx",
 	//"context": "..",
 	//"dockerFile": "Dockerfile",
-	"dockerComposeFile": "../docker-compose.yml",
+	"dockerComposeFile": "../docker-compose.prod.yml",
 	"service": "web",
 	"workspaceFolder": "/djangonginx/",
 	"appPort": ["0.0.0.0"],
